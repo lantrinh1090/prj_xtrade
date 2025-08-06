@@ -20,23 +20,23 @@ public class Historypage {
 
     // Select dropdowns
 
-        public void selectDropdownByLabel(WebDriver driver, String labelText, String optionText) {
-            // Tìm label có text đúng labelText
-            WebElement label = driver.findElement(By.xpath("//label[text()='" + labelText + "']"));
+    public void selectDropdownByLabel(WebDriver driver, String labelText, String optionText) {
+        // Tìm label có text đúng labelText
+        WebElement label = driver.findElement(By.xpath("//label[text()='" + labelText + "']"));
 
-            // Tìm div dropdown là em/anh/em út của label, ví dụ following-sibling
-            WebElement dropdown = label.findElement(By.xpath("following-sibling::div[contains(@class,'ant-select')]"));
+        // Tìm div dropdown là em/anh/em út của label, ví dụ following-sibling
+        WebElement dropdown = label.findElement(By.xpath("following-sibling::div[contains(@class,'ant-select')]"));
 
-            // Click mở dropdown
-            dropdown.click();
+        // Click mở dropdown
+        dropdown.click();
 
-            // Chờ dropdown options hiện ra, chọn option theo optionText
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement option = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//div[contains(@class,'ant-select-item-option-content') and text()='" + optionText + "']")
-            ));
+        // Chờ dropdown options hiện ra, chọn option theo optionText
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement option = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//div[contains(@class,'ant-select-item-option-content') and text()='" + optionText + "']")
+        ));
 
-            option.click();
+        option.click();
     }
 
 

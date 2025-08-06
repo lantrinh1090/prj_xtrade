@@ -1,7 +1,7 @@
 package Testcase;
 
-import BaseSetup.BaseSetup;
-import Dataprovider.HistoryDP;
+import Base.BaseSetup;
+import Model.HistoryDP;
 import Page.Historypage;
 import org.openqa.selenium.WebDriver;
 import org.testng.Assert;

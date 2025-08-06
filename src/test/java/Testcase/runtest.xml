@@ -1,14 +1,11 @@
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 <suite name="Page Object test example">
     <parameter name="browserType" value="chrome" />
-    <parameter name="appURL"  value="http://14.225.71.46:3000/history" />
+    <parameter name="appURL" value="http://14.225.71.46:3000/view/manage-order" />
+
     <test name="sample test">
         <classes>
-            <class name="Testcase.HistoryTest">
-                <methods>
-                    <include name="testFilterWithMultipleData" />
-                </methods>
-            </class>
+            <class name="Testcase.NewOrdertest" />
         </classes>
     </test>
 </suite>
