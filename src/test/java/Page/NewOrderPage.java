@@ -1,9 +1,6 @@
 package Page;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -25,6 +22,7 @@ public class NewOrderPage {
     private By SLtxt = By.xpath("//label[text()='S/L']/following-sibling::div//input");
     private By TPtxt = By.xpath("//label[text()='T/P']/following-sibling::div//input");
     private By PlaceOrderbtn = By.xpath("//button[@type='submit' and contains(., 'Place Order')]");
+    private By Ordermenu = By.xpath("//li[.//a[text()='Order']]");
     private WebDriverWait wait;
 
     public NewOrderPage(WebDriver driver) {
@@ -35,39 +33,34 @@ public class NewOrderPage {
     private String buildOptionXpath(String optionText) {
         return "//div[contains(@class,'ant-select-item-option-content') and normalize-space(text())='" + optionText + "']";
     }
+    public void openmenuOrder() throws InterruptedException {
+        WebElement order = wait.until(ExpectedConditions.elementToBeClickable(Ordermenu));
+        order.click();
+    }
 
     public void selectDropdownByLabel(WebDriver driver, String labelText, String optionText) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(300));
 
         try {
-            // 1. Tìm label
-            WebElement label = wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.xpath("//label[contains(normalize-space(.), '" + labelText + "')]")
+            // 1. Tìm label theo text
+            WebElement label = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.xpath("//label[normalize-space(text())='" + labelText + "']")
             ));
 
-            // 2. Tìm dropdown phía dưới label
-            WebElement dropdown = label.findElement(By.xpath("following-sibling::div[contains(@class,'ant-select')]"));
-
+            // 2. Đi từ label → lên 3 cấp (ant-col > ant-row > ant-form-item)
+            // rồi tìm div.ant-select nằm dưới cùng cây đó
+            WebElement formItem = label.findElement(By.xpath("ancestor::div[contains(@class,'ant-form-item')]"));
+            WebElement dropdown = formItem.findElement(By.xpath(".//div[contains(@class,'ant-select')]"));
             // 3. Click để mở dropdown
             dropdown.click();
-
-            // 4. Tìm input (nếu có thể nhập được)
-            List<WebElement> inputList = dropdown.findElements(By.xpath(".//input[contains(@class,'ant-select-selection-search-input')]"));
-
-            if (!inputList.isEmpty()) {
-                WebElement inputBox = inputList.get(0);
-                String readonly = inputBox.getAttribute("readonly");
-
-                if (readonly == null || readonly.isEmpty()) {
-                    inputBox.sendKeys(optionText);  // chỉ nhập nếu không readonly
-                }
+            try {
+                Thread.sleep(3000);  // Tạm dừng 3 giây cho dropdown load xong
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-
-            // 5. Chờ và click vào option
+            // 4. Chờ option xuất hiện và click
             WebElement option = wait.until(ExpectedConditions.elementToBeClickable(
-                 //   By.xpath("//div[contains(@class,'ant-select-item-option-content') and normalize-space(text())='" + optionText + "']")
-                    By.xpath("//div[contains(@class,'ant-select-item-option-content') and starts-with(normalize-space(text()), '" + optionText + "')]")
-
+                    By.xpath("//div[contains(@class,'ant-select-item-option-content') and normalize-space(text())='" + optionText + "']")
             ));
             option.click();
 
@@ -76,52 +69,47 @@ public class NewOrderPage {
             throw e;
         }
     }
-    public void enterInputByLabel(WebDriver driver, String labelText, String value) {
+
+
+    public void enterInputByLabel(WebDriver driver, String labelText, Object value) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         try {
-            WebElement input = wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]/following-sibling::div//input")
+            // Tìm label
+            WebElement label = wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]")
             ));
 
+            // Tìm form group cha chứa input tương ứng
+            WebElement formItemDiv = label.findElement(
+                    By.xpath("./ancestor::div[contains(@class,'ant-form-item')]")
+            );
+
+            // Tìm input (có thể là text input hoặc number input)
+            WebElement input = formItemDiv.findElement(
+                    By.xpath(".//input[not(@type='radio') and not(@type='checkbox')]")
+            );
+
+            // Clear & nhập giá trị
             input.clear();
-            input.sendKeys(value);
+
+            if (value != null) {
+                input.sendKeys(String.valueOf(value));
+            }
         } catch (Exception e) {
             System.out.println("❌ Không thể nhập giá trị cho label: " + labelText + ". Lỗi: " + e.getMessage());
             throw e;
         }
     }
+    public void selectMarketExecutionOption(WebDriver driver, String optionText) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-
-
-    public void enterVolume(String volume) {
-        WebElement volumeInput = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector(".ant-input-number input")
+        // Tìm radio label chứa text
+        WebElement radioLabel = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//div[@id='marketExecution']//label[.//span[contains(normalize-space(.),'" + optionText + "')]]")
         ));
-        volumeInput.clear();
-        volumeInput.sendKeys(volume);
-    }
-    public void Enterprice(float pice) {
-        WebElement element = driver.findElement(pricetxt);
-        element.clear();
-        element.sendKeys(Float.toString(pice));
-    }
 
-    public void EnterSL(float SL) {
-        WebElement element = driver.findElement(SLtxt);
-        element.clear();
-        element.sendKeys(Float.toString(SL));
-    }
-
-    public void EnterTP(float TP) {
-        WebElement element = driver.findElement(TPtxt);
-        element.clear();
-        element.sendKeys(Float.toString(TP));
-    }
-
-    public void CheckMarket() {
-        WebElement market = driver.findElement(marketchk);
-        market.click();
+        radioLabel.click();
     }
 
     public void submitOrder() throws InterruptedException {
@@ -131,40 +119,7 @@ public class NewOrderPage {
         submitBtn.click();
     }
 
-    public boolean isSuccessMessageDisplayed() {
-        try {
-            WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.cssSelector(".ant-message-success .ant-message-notice-content")
-            ));
-            System.out.println("Thông báo thành công: " + successMsg.getText());
-            return successMsg.isDisplayed();
-        } catch (TimeoutException e) {
-            System.out.println("Không thấy thông báo thành công.");
-            return false;
-        }
-    }
-
-
-    public boolean isValidationErrorDisplayed(String fieldName) {
-        try {
-            WebElement error = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.xpath("//label[contains(normalize-space(),'" + fieldName + "')]/following-sibling::div//div[contains(@class,'ant-form-item-explain-error')]")
-            ));
-            return error.isDisplayed();
-        } catch (TimeoutException e) {
-            return false;
-        }
-    }
-
-    public boolean isSuccessAlertDisplayed() {
-        try {
-            WebElement alert = driver.findElement(By.cssSelector(".ant-alert-success, .ant-empty-description"));
-            return alert.isDisplayed();
-        } catch (NoSuchElementException e) {
-            return false;
-        }
-    }
-    public boolean isResultDisplayedCorrectlyByColumns(String symbol, String OrderType, String Volume,
+     public boolean isResultDisplayedCorrectlyByColumns(String symbol, String OrderType, String Volume,
                                                        String Price, String SLTP) {
         try {
             List<WebElement> rows = driver.findElements(By.xpath("//table//tbody//tr"));
@@ -205,15 +160,74 @@ public class NewOrderPage {
         }
     }
 
+    public String getAlertMessage() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
+        // 1. Thử bắt message popup
+        try {
+            WebElement msg = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.cssSelector(".ant-message-notice-content")
+            ));
+            return msg.getText();
+        } catch (TimeoutException ignored) {}
+
+        // 2. Thử bắt alert component
+        try {
+            WebElement alert = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.cssSelector(".ant-alert")
+            ));
+            return alert.getText();
+        } catch (TimeoutException ignored) {}
+
+        // 3. Thử bắt lỗi inline từ form (ant-form-item-explain-error)
+        try {
+            List<WebElement> errors = driver.findElements(By.cssSelector(".ant-form-item-explain-error"));
+            if (!errors.isEmpty()) {
+                StringBuilder errorMessages = new StringBuilder();
+                for (WebElement error : errors) {
+                    String text = error.getText().trim();
+                    if (!text.isEmpty()) {
+                        errorMessages.append(text).append(" | ");
+                    }
+                }
+                // Loại bỏ dấu | cuối
+                if (errorMessages.length() > 0) {
+                    return errorMessages.substring(0, errorMessages.length() - 3);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("ℹ Không tìm được thông báo dạng popup, alert hay inline form.");
+        return null;
+    }
+
+
+    public void increasePriceByArrowUp(WebDriver driver) {
+        try {
+            // Đợi ô input "Price" xuất hiện và có thể tương tác
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement priceInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("price")));
+            // Click vào ô nhập để focus
+            priceInput.click();
+            // Gửi phím mũi tên lên (Arrow Up) để tăng giá
+            priceInput.sendKeys(Keys.ARROW_UP);
+            // (Tùy chọn) In ra giá trị sau khi tăng
+            String newValue = priceInput.getAttribute("value");
+            System.out.println("✅ Giá sau khi tăng: " + newValue);
+        } catch (TimeoutException e) {
+            System.out.println("❌ Không tìm thấy ô Price hoặc không thể tương tác.");
+        } catch (Exception e) {
+            System.out.println("❌ Lỗi khác: " + e.getMessage());
+        }
+    }
     private boolean isWithinDateRange(String actualTime, String startDate, String endDate) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             LocalDateTime actual = LocalDateTime.parse(actualTime, formatter);
-
             LocalDate start = LocalDate.parse(startDate);
             LocalDate end = LocalDate.parse(endDate);
-
             return !actual.toLocalDate().isBefore(start) && !actual.toLocalDate().isAfter(end);
         } catch (Exception e) {
             return false;

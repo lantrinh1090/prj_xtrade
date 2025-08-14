@@ -3,8 +3,11 @@ package Testcase;
 import Base.BaseSetup;
 import Model.HistoryDP;
 import Model.OrderDataModel;
+import Page.Loginpage;
 import Page.NewOrderPage;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -12,53 +15,138 @@ import org.testng.annotations.*;
 import java.time.Duration;
 
 public class NewOrdertest extends BaseSetup {
- //   private WebDriver driver;
-  //  public NewOrderPage newOrderpage;
+    private WebDriver driver;
+    private Loginpage loginpage;
+    private NewOrderPage newOrderpage;
 
-    @BeforeMethod
+    @BeforeClass
     @Parameters({"browserType", "appURL"})
     public void setUp(String browserType, String appURL) {
         createDriver(browserType, appURL);
+        driver = getDriver();
+
     }
-    @Test(dataProvider = "orderData", dataProviderClass = HistoryDP.class)
+
+    @Test(priority = 1)
+    public void LoginSuccess() {
+        loginpage = new Loginpage(driver);
+        loginpage.login("50000200", "8uJbAf-p", "Axi-US50-Demo");
+        String pageTitle = driver.getTitle();
+        System.out.println("Title sau khi đăng nhập: " + pageTitle);
+        Assert.assertTrue(pageTitle.contains("XTrade"), "Đăng nhập thành công vào Dashboard");
+    }
+
+    @Test(dataProvider = "orderData", dataProviderClass = HistoryDP.class, priority = 2)
     public void testCreateNewOrder(OrderDataModel data) throws InterruptedException {
-
         NewOrderPage orderPage = new NewOrderPage(driver);
+        orderPage.openmenuOrder();
 
-        if (!data.symbol.isEmpty()) {
-            orderPage.selectDropdownByLabel(driver,"Symbol", data.symbol);
-            Thread.sleep(1000);
-        }
-
-        if (!data.orderType.isEmpty()) {
-            orderPage.selectDropdownByLabel(driver,"Order Type", data.orderType);
-            Thread.sleep(1000);
+        if (!data.getSymbol().isEmpty()) {
+            orderPage.selectDropdownByLabel(driver, "Symbol", data.getSymbol());
+            waitForDropdownSettled("Symbol");
         }
 
-        if (!data.volume.isEmpty()) {
-            orderPage.enterInputByLabel(driver,"Volume",data.volume);
-            Thread.sleep(1000);
+        orderPage.selectMarketExecutionOption(driver, data.getOrderMode());
+
+        if (!data.getOrderType().isEmpty()) {
+            orderPage.selectDropdownByLabel(driver, "Order Type", data.getOrderType());
+            waitForDropdownSettled("Order Type");
         }
-        if (!(data.price==0)) {
-            orderPage.enterInputByLabel(driver,"Price", String.valueOf(data.price));
-            Thread.sleep(1000);
+
+        if (data.getVolume() != null) {
+            waitForInputReady("Volume");
+            orderPage.enterInputByLabel(driver, "Volume", data.getVolume());
         }
-        if (!(data.SL==0)) {
-            orderPage.enterInputByLabel(driver,"S/L", String.valueOf(data.SL));
-            Thread.sleep(1000);
+
+        // ✅ Chỉ xử lý giá khi là "Market Execution"
+        if ("Pending Order".equalsIgnoreCase(data.getOrderMode())) {
+            if (data.getPrice() != null) {
+                waitForInputReady("Price");
+                orderPage.enterInputByLabel(driver, "Price", String.valueOf(data.getPrice()));
+            } else {
+                waitForInputReady("Price");
+                orderPage.increasePriceByArrowUp(driver);
+            }
         }
-        if (!(data.TP==0)) {
-            orderPage.enterInputByLabel(driver,"T/P", String.valueOf(data.TP));
-            Thread.sleep(1000);
+        if ("Market Execution".equalsIgnoreCase(data.getOrderMode())) {
+            if (data.getFillPolicy() == null) {
+                orderPage.selectDropdownByLabel(driver, "Fill Policy", data.getFillPolicy());
+                waitForDropdownSettled("Fill Policy");
+            }
         }
+
+    /*
+    if (data.getFillPolicy() != null) {
+        orderPage.selectDropdownByLabel(driver, "Fill Policy", data.getFillPolicy());
+        waitForDropdownSettled("Fill Policy");
+    }
+    */
 
         orderPage.submitOrder();
-        //Thread.sleep(5000);
-        Thread.sleep(2000);
-        boolean actualResult = orderPage.isResultDisplayedCorrectlyByColumns(data.symbol, data.orderType, data.volume, String.valueOf(data.price), String.valueOf(data.SL));
-        Assert.assertTrue(actualResult, "Kết quả ko đúng");
+        String alert = orderPage.getAlertMessage();
+
+        System.out.println("🧾 Alert Message: " + alert);
+
+        if (data.isExpectSuccess()) {
+            Assert.assertNotNull(alert, "Kỳ vọng thành công nhưng không có thông báo.");
+            Assert.assertTrue(alert.contains("Order created successfully"), "Kỳ vọng thành công nhưng thông báo là: " + alert);
+        } else {
+            Assert.assertNotNull(alert, "Kỳ vọng thất bại nhưng không có thông báo lỗi.");
+            Assert.assertTrue(
+                    alert.contains("Order send failed") || alert.contains("retcode"),
+                    "Kỳ vọng thất bại nhưng nhận được thông báo thành công: " + alert
+            );
+        }
 
     }
+
+    public void waitForInputReady(String labelText) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+        By inputLocator = null;
+
+        // Tùy theo label để dùng XPath chính xác
+        switch (labelText) {
+            case "Volume":
+                inputLocator = By.xpath("//label[@for='volume']/ancestor::div[contains(@class,'ant-form-item')]//input");
+                break;
+            case "Price":
+                inputLocator = By.xpath("//label[@for='price']/ancestor::div[contains(@class,'ant-form-item')]//input");
+                break;
+            default:
+                inputLocator = By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]/following-sibling::div//input");
+        }
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(inputLocator));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
+        wait.until(ExpectedConditions.elementToBeClickable(inputLocator));
+    }
+
+
+    public void waitForDropdownSettled(String labelText) {
+        new WebDriverWait(driver, Duration.ofSeconds(30))
+                .until(ExpectedConditions.invisibilityOfElementLocated(
+                        By.cssSelector(".ant-select-dropdown-hidden") // dropdown đã đóng
+                ));
+    }
+   /* @Test(dataProvider = "orderData")
+    public void testCreateOrder(OrderDataModel data) throws InterruptedException {
+        newOrderPage.selectDropdownByLabel("Symbol", data.getSymbol());
+        newOrderPage.selectDropdownByLabel("Order Mode", data.getOrderMode());
+        newOrderPage.selectDropdownByLabel("Order Type", data.getOrderType());
+        newOrderPage.enterInputByLabel("Volume", data.getVolume());
+        newOrderPage.enterInputByLabel("Price", data.getPrice());
+        newOrderPage.selectDropdownByLabel("Fill Policy", data.getFillPolicy());
+
+        newOrderPage.submitOrder();
+
+        String alert = newOrderPage.getAlertMessage();
+        if (data.isExpectSuccess()) {
+            Assert.assertTrue(alert.contains("thành công"), "Kỳ vọng thành công nhưng nhận: " + alert);
+        } else {
+            Assert.assertTrue(alert != null && !alert.isEmpty(), "Kỳ vọng có thông báo lỗi nhưng không thấy.");
+        }
+    }*/
 
 /*
     @Test( priority = 1)
@@ -68,7 +156,7 @@ public class NewOrdertest extends BaseSetup {
         System.out.println("create Success");
     }*/
 
-    @AfterMethod
+    @AfterClass
     public void tearDown() {
         quitDriver();  // quit driver an toàn như trên
     }
