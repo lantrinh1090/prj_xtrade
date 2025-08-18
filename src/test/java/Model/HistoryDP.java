@@ -57,7 +57,7 @@ public class HistoryDP {
                   { new OrderDataModel("", "Pending Order", 0.1f,(float) 0, "", "Buy Limit", false) },
 
                 // TC007: Không chọn Order Type
-                  { new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", null, false) }
+              //    { new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", null, false) }
 
         };
     }
