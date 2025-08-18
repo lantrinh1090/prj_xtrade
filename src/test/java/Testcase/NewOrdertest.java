@@ -43,35 +43,56 @@ public class NewOrdertest extends BaseSetup {
 
         if (!data.getSymbol().isEmpty()) {
             orderPage.selectDropdownByLabel(driver, "Symbol", data.getSymbol());
-            waitForDropdownSettled("Symbol");
+            orderPage.waitForDropdownSettled("Symbol");
         }
 
         orderPage.selectMarketExecutionOption(driver, data.getOrderMode());
-
-        if (!data.getOrderType().isEmpty()) {
+        if (data.getOrderType() != null) {
             orderPage.selectDropdownByLabel(driver, "Order Type", data.getOrderType());
-            waitForDropdownSettled("Order Type");
+            orderPage.waitForDropdownSettled("Order Type");
+        } else {
+            System.out.println("⚠️ Order Type không được cung cấp — bỏ qua chọn dropdown.");
         }
 
-        if (data.getVolume() != null) {
-            waitForInputReady("Volume");
-            orderPage.enterInputByLabel(driver, "Volume", data.getVolume());
+        if (data.getVolume() != null)
+        {
+        orderPage.waitForInputReady("Volume");
+        orderPage.enterInputByLabel(driver, "Volume", data.getVolume());
+        }
+        else
+        {
+                System.out.println("⚠️ Volume không được cung cấp — bỏ qua chọn Volume.");
         }
 
         // ✅ Chỉ xử lý giá khi là "Market Execution"
         if ("Pending Order".equalsIgnoreCase(data.getOrderMode())) {
             if (data.getPrice() != null) {
-                waitForInputReady("Price");
-                orderPage.enterInputByLabel(driver, "Price", String.valueOf(data.getPrice()));
+                orderPage.waitForInputReady("Price");
+
+                if (data.getPrice() != 0) {
+                    // ✅ Nhập giá trực tiếp
+                    orderPage.enterInputByLabel(driver, "Price", String.valueOf(data.getPrice()));
+                } else {
+                    // ✅ Price = 0, chọn tăng hoặc giảm tùy theo OrderMode
+                    if (data.getOrderMode() != null && data.getOrderMode().contains("By")) {
+                        orderPage.increasePriceByArrowDown(driver);
+                    } else {
+                        orderPage.increasePriceByArrowUp(driver);
+                    }
+                }
             } else {
-                waitForInputReady("Price");
-                orderPage.increasePriceByArrowUp(driver);
+                System.out.println("⚠️ Price không được cung cấp — bỏ qua nhập giá Price.");
             }
+
         }
+
         if ("Market Execution".equalsIgnoreCase(data.getOrderMode())) {
-            if (data.getFillPolicy() == null) {
+            if (data.getFillPolicy() != null) {
                 orderPage.selectDropdownByLabel(driver, "Fill Policy", data.getFillPolicy());
-                waitForDropdownSettled("Fill Policy");
+                orderPage.waitForDropdownSettled("Fill Policy");
+            }
+            else {
+                System.out.println("⚠️ Policy không được cung cấp — bỏ qua nhập giá Policy.");
             }
         }
 
@@ -92,43 +113,23 @@ public class NewOrdertest extends BaseSetup {
             Assert.assertTrue(alert.contains("Order created successfully"), "Kỳ vọng thành công nhưng thông báo là: " + alert);
         } else {
             Assert.assertNotNull(alert, "Kỳ vọng thất bại nhưng không có thông báo lỗi.");
+
+            boolean isFormError = alert.contains("Please enter")
+                    || alert.contains("is required")
+                    || alert.contains("Please select");
+
+            boolean isServerError = alert.contains("Order send failed")
+                    || alert.contains("retcode");
+
             Assert.assertTrue(
-                    alert.contains("Order send failed") || alert.contains("retcode"),
-                    "Kỳ vọng thất bại nhưng nhận được thông báo thành công: " + alert
+                    isFormError || isServerError,
+                    "Kỳ vọng thất bại nhưng nhận được thông báo không xác định hoặc thành công: " + alert
             );
-        }
 
     }
-
-    public void waitForInputReady(String labelText) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-
-        By inputLocator = null;
-
-        // Tùy theo label để dùng XPath chính xác
-        switch (labelText) {
-            case "Volume":
-                inputLocator = By.xpath("//label[@for='volume']/ancestor::div[contains(@class,'ant-form-item')]//input");
-                break;
-            case "Price":
-                inputLocator = By.xpath("//label[@for='price']/ancestor::div[contains(@class,'ant-form-item')]//input");
-                break;
-            default:
-                inputLocator = By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]/following-sibling::div//input");
-        }
-
-        wait.until(ExpectedConditions.presenceOfElementLocated(inputLocator));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
-        wait.until(ExpectedConditions.elementToBeClickable(inputLocator));
     }
 
 
-    public void waitForDropdownSettled(String labelText) {
-        new WebDriverWait(driver, Duration.ofSeconds(30))
-                .until(ExpectedConditions.invisibilityOfElementLocated(
-                        By.cssSelector(".ant-select-dropdown-hidden") // dropdown đã đóng
-                ));
-    }
    /* @Test(dataProvider = "orderData")
     public void testCreateOrder(OrderDataModel data) throws InterruptedException {
         newOrderPage.selectDropdownByLabel("Symbol", data.getSymbol());

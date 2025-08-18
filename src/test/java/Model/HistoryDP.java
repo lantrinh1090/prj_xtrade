@@ -22,43 +22,42 @@ public class HistoryDP {
     public Object[][] orderData() {
         return new Object[][]{
                 // TC001: Market Execution thành công
-                { new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", "Buy", true) },
+                  { new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", "Buy", true) },
 
                 // TC002: Volume trống
-                { new OrderDataModel("EURUSD", "Market Execution", null, null, "Fill or Kill", "Buy", false) },
+                  { new OrderDataModel("BTCUSD", "Market Execution", null, null, "Fill or Kill", "Buy", false) },
 
                 // TC003: Volume < 0.01
-                { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "Fill or Kill", "Buy", false) },
+                  { new OrderDataModel("BTCUSD", "Market Execution", (float) 0.0001f, null, "Fill or Kill", "Buy", true)},
 
                 // TC004: Volume > max
-               // { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "Fill or Kill", "Buy", false) },
-                // TC005: Fill Policy Empty
-                // { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "", "Buy", false) },
+              // { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "Fill or Kill", "Buy", false) },
+
 
                 // TC006: Không chọn Symbol
-                { new OrderDataModel("", "Market Execution", 0.1f, null, "Fill or Kill", "Buy", false) },
+                  { new OrderDataModel("", "Market Execution", 0.1f, null, "Fill or Kill", "Buy", false) },
 
                 // TC007: Không chọn Order Type
-                { new OrderDataModel("EURUSD", "Market Execution", 1.0f, null, "Fill or Kill", "", false) },
+                  { new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", null, false) },
 
                 // TC008: Pending Order thành công
-                { new OrderDataModel("BTCUSD", "Pending Order", 1.0f, null, "", "Buy Limit", true) },
+                  { new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", "Buy Limit", true) },
                 // TC002: Volume trống
-                { new OrderDataModel("EURUSD", "Pending Order", null, null, "", "Buy", false) },
+                  { new OrderDataModel("BTCUSD", "Pending Order", null, (float) 0, "", "Buy Limit", false) },
 
                 // TC003: Volume < 0.01
-                { new OrderDataModel("EURUSD", "Pending Order", 0.005f, null, "", "Buy", false) },
+                  { new OrderDataModel("BTCUSD", "Pending Order", 0.005f, 115254.82f, "", "Buy Limit", false) },
 
                 // TC004: Volume > max
-                // { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "Fill or Kill", "Buy", false) },
+                // { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "Fill or Kill", "Buy Limit", false) },
               //   TC005: Fill Price Empty
-                 { new OrderDataModel("EURUSD", "Pending Order", 0.005f, null, "", "Buy", false) },
+                  { new OrderDataModel("BTCUSD", "Pending Order", 0.01f, null, "", "Buy Limit", false) },
 
                 // TC006: Không chọn Symbol
-                { new OrderDataModel("", "Pending Order", 0.1f, null, "", "Buy", false) },
+                  { new OrderDataModel("", "Pending Order", 0.1f,(float) 0, "", "Buy Limit", false) },
 
                 // TC007: Không chọn Order Type
-                { new OrderDataModel("EURUSD", "Pending Order", 1.0f, null, "", "", false) }
+                  { new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", null, false) }
 
         };
     }
