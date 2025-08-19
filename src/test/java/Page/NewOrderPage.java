@@ -117,22 +117,23 @@ public class NewOrderPage {
     public WebElement waitForInputReady(String labelText) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         By inputLocator;
+
         switch (labelText) {
             case "Volume":
-                inputLocator = By.xpath("//label[@for='volume']/ancestor::div[contains(@class,'ant-form-item')]//input");
+                inputLocator = By.xpath("//label[normalize-space(text())='Volume']/ancestor::div[contains(@class,'ant-form-item')]//input");
                 break;
             case "Price":
-                inputLocator = By.xpath("//label[@for='price']/ancestor::div[contains(@class,'ant-form-item')]//input");
+                inputLocator = By.xpath("//label[normalize-space(text())='Price']/ancestor::div[contains(@class,'ant-form-item')]//input");
                 break;
             default:
-                inputLocator = By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]/following-sibling::div//input");
+                inputLocator = By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]/following::input[1]");
         }
 
         wait.until(ExpectedConditions.presenceOfElementLocated(inputLocator));
         wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
         wait.until(ExpectedConditions.elementToBeClickable(inputLocator));
 
-        return driver.findElement(inputLocator); // ← Trả về input để tái sử dụng
+        return driver.findElement(inputLocator);
     }
 
 
@@ -275,6 +276,11 @@ public class NewOrderPage {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public void clickResetButton() {
+        WebElement resetBtn = driver.findElement(By.xpath("//button[span[text()='Reset Form']]"));
+        resetBtn.click();
     }
 
 }

@@ -40,7 +40,7 @@ public class NewOrdertest extends BaseSetup {
     public void testCreateNewOrder(OrderDataModel data) throws InterruptedException {
         NewOrderPage orderPage = new NewOrderPage(driver);
         orderPage.openmenuOrder();
-
+        orderPage.clickResetButton();
         if (!data.getSymbol().isEmpty()) {
             orderPage.selectDropdownByLabel(driver, "Symbol", data.getSymbol());
             orderPage.waitForDropdownSettled("Symbol");

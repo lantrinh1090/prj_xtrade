@@ -66,11 +66,11 @@ public class Loginpage {
     }
 
     public String getErrorMessage() {
-            // 1. lấy alert
-                Alert alert = wait.until(ExpectedConditions.alertIsPresent());
-                String alertText = alert.getText();
-                alert.accept(); // đóng alert
-                return alertText.trim();
+        // 1. lấy alert
+        Alert alert = wait.until(ExpectedConditions.alertIsPresent());
+        String alertText = alert.getText();
+        alert.accept(); // đóng alert
+        return alertText.trim();
     }
 
     // Lấy message lỗi cho một field bất kỳ
