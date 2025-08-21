@@ -37,64 +37,117 @@ public class NewOrdertest extends BaseSetup {
     }
 
     @Test(dataProvider = "orderData", dataProviderClass = HistoryDP.class, priority = 2)
-    public void testCreateNewOrder(OrderDataModel data) throws InterruptedException {
+    public void testCreateNewOrder(String testCaseName,OrderDataModel data) throws InterruptedException {
         NewOrderPage orderPage = new NewOrderPage(driver);
         orderPage.openmenuOrder();
-
+        orderPage.clickResetFormButton();
         if (!data.getSymbol().isEmpty()) {
             orderPage.selectDropdownByLabel(driver, "Symbol", data.getSymbol());
             orderPage.waitForDropdownSettled("Symbol");
         }
 
-        orderPage.selectMarketExecutionOption(driver, data.getOrderMode());
-        if (data.getOrderType() != null) {
-            orderPage.selectDropdownByLabel(driver, "Order Type", data.getOrderType());
-            orderPage.waitForDropdownSettled("Order Type");
+        if (data.getOrderMode() != null) {
+            orderPage.selectMarketExecutionOption(driver, data.getOrderMode());
+            System.out.println("✅ Đã chọn OrderMode: " + data.getOrderMode());
         } else {
+            System.out.println("⚠️ OrderMode = null → bỏ qua chọn OrderMode");
+        }
+        String orderType = data.getOrderType();
+        if (orderType == null || orderType.trim().isEmpty()) {
             System.out.println("⚠️ Order Type không được cung cấp — bỏ qua chọn dropdown.");
+        } else {
+            orderPage.selectDropdownByLabel(driver, "Order Type", orderType);
+            orderPage.waitForDropdownSettled("Order Type");
         }
 
-        if (data.getVolume() != null)
-        {
-        orderPage.waitForInputReady("Volume");
-        orderPage.enterInputByLabel(driver, "Volume", data.getVolume());
-        }
-        else
-        {
-                System.out.println("⚠️ Volume không được cung cấp — bỏ qua chọn Volume.");
+
+        if (data.getVolume() != null) {
+            orderPage.waitForInputReady("Volume");
+            orderPage.enterInputByLabel(driver, "Volume", data.getVolume());
+        } else {
+            System.out.println("⚠️ Volume không được cung cấp — bỏ qua chọn Volume.");
         }
 
         // ✅ Chỉ xử lý giá khi là "Market Execution"
         if ("Pending Order".equalsIgnoreCase(data.getOrderMode())) {
-            if (data.getPrice() != null) {
-                orderPage.waitForInputReady("Price");
 
-                if (data.getPrice() != 0) {
-                    // ✅ Nhập giá trực tiếp
-                    orderPage.enterInputByLabel(driver, "Price", String.valueOf(data.getPrice()));
-                } else {
-                    // ✅ Price = 0, chọn tăng hoặc giảm tùy theo OrderMode
-                    if (data.getOrderMode() != null && data.getOrderMode().contains("By")) {
-                        orderPage.increasePriceByArrowDown(driver);
-                    } else {
-                        orderPage.increasePriceByArrowUp(driver);
-                    }
-                }
-            } else {
+            Float priceToUse = data.getPrice();
+            float uiPrice;
+            if (priceToUse == null) {
                 System.out.println("⚠️ Price không được cung cấp — bỏ qua nhập giá Price.");
+                return;
+            }
+            orderPage.waitForInputReady("Price");
+            switch (priceToUse.compareTo(0f)) {
+                case 1: // > 0
+                    orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                    break;
+                case 0: // == 0
+                    orderType = data.getOrderType();
+                    switch (orderType) {
+                        case "Buy Limit":
+                            //orderPage.increasePriceByArrowDown(driver);
+
+                            orderPage.increasePriceByArrowUp(driver); // hoặc down, tùy rule
+                            uiPrice = orderPage.getCurrentPrice();
+                            priceToUse = uiPrice - 100;
+                            System.out.println("✅ Giá lấy từ UI: " + uiPrice + " → dùng giá mới: " + priceToUse);
+                            orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                            break;
+
+                        case "Sell Limit":
+                            //orderPage.increasePriceByArrowUp(driver);
+                            orderPage.increasePriceByArrowUp(driver); // hoặc down, tùy rule
+                            uiPrice = orderPage.getCurrentPrice();
+                            priceToUse = uiPrice + 100;
+                            System.out.println("✅ Giá lấy từ UI: " + uiPrice + " → dùng giá mới: " + priceToUse);
+                            orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                            break;
+
+                        case "Buy Stop":
+                          //  orderPage.increasePriceByArrowUp(driver);
+                            orderPage.increasePriceByArrowUp(driver); // hoặc down, tùy rule
+                            uiPrice = orderPage.getCurrentPrice();
+                            priceToUse = uiPrice + 100;
+                            System.out.println("✅ Giá lấy từ UI: " + uiPrice + " → dùng giá mới: " + priceToUse);
+                            orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                            break;
+
+                        case "Sell Stop":
+                            //orderPage.increasePriceByArrowDown(driver);
+                            orderPage.increasePriceByArrowUp(driver); // hoặc down, tùy rule
+                            uiPrice = orderPage.getCurrentPrice();
+                            priceToUse = uiPrice -100;
+                            System.out.println("✅ Giá lấy từ UI: " + uiPrice + " → dùng giá mới: " + priceToUse);
+                            orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                            break;
+
+                            break;
+                        case "Buy Stop Limit":
+                            orderPage.increasePriceByArrowUp(driver); // hoặc down, tùy rule
+                            uiPrice = orderPage.getCurrentPrice();
+                            priceToUse = uiPrice + 100;
+                            System.out.println("✅ Giá lấy từ UI: " + uiPrice + " → dùng giá mới: " + priceToUse);
+                            orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                            break;
+                        case "Sell Stop Limit":
+                            orderPage.increasePriceByArrowUp(driver); // hoặc down, tùy rule
+                            uiPrice = orderPage.getCurrentPrice();
+                            priceToUse = uiPrice - 100;
+                            System.out.println("✅ Giá lấy từ UI: " + uiPrice + " → dùng giá mới: " + priceToUse);
+                            orderPage.enterInputByLabel(driver, "Price", String.valueOf(priceToUse));
+                            break;
+                    }
             }
 
-        }
-
-        if ("Market Execution".equalsIgnoreCase(data.getOrderMode())) {
-            if (data.getFillPolicy() != null) {
-                orderPage.selectDropdownByLabel(driver, "Fill Policy", data.getFillPolicy());
-                orderPage.waitForDropdownSettled("Fill Policy");
+            if ("Market Execution".equalsIgnoreCase(data.getOrderMode())) {
+                if (data.getFillPolicy() != null) {
+                    orderPage.selectDropdownByLabel(driver, "Fill Policy", data.getFillPolicy());
+                    orderPage.waitForDropdownSettled("Fill Policy");
+                } else {
+                    System.out.println("⚠️ Policy không được cung cấp — bỏ qua nhập giá Policy.");
+                }
             }
-            else {
-                System.out.println("⚠️ Policy không được cung cấp — bỏ qua nhập giá Policy.");
-            }
-        }
 
     /*
     if (data.getFillPolicy() != null) {
@@ -103,33 +156,33 @@ public class NewOrdertest extends BaseSetup {
     }
     */
 
-        orderPage.submitOrder();
-        String alert = orderPage.getAlertMessage();
+            orderPage.submitOrder();
+            String alert = orderPage.getAlertMessage();
 
-        System.out.println("🧾 Alert Message: " + alert);
+            System.out.println("🧾 Alert Message: " + alert);
 
-        if (data.isExpectSuccess()) {
-            Assert.assertNotNull(alert, "Kỳ vọng thành công nhưng không có thông báo.");
-            Assert.assertTrue(alert.contains("Order created successfully"), "Kỳ vọng thành công nhưng thông báo là: " + alert);
-        } else {
-            Assert.assertNotNull(alert, "Kỳ vọng thất bại nhưng không có thông báo lỗi.");
+            if (data.isExpectSuccess()) {
+                Assert.assertNotNull(alert, "Kỳ vọng thành công nhưng không có thông báo.");
+                Assert.assertTrue(alert.contains("created successfully"), "Kỳ vọng thành công nhưng thông báo là: " + alert);
+            } else {
+                Assert.assertNotNull(alert, "Kỳ vọng thất bại nhưng không có thông báo lỗi.");
 
-            boolean isFormError = alert.contains("Please enter")
-                    || alert.contains("is required")
-                    || alert.contains("Please select");
+                boolean isFormError = alert.contains("Please enter")
+                        || alert.contains("is required")
+                        || alert.contains("Please select");
 
-            boolean isServerError = alert.contains("Order send failed")
-                    || alert.contains("retcode");
+                boolean isServerError = alert.contains("Order send failed")
+                        || alert.contains("retcode");
 
-            Assert.assertTrue(
-                    isFormError || isServerError,
-                    "Kỳ vọng thất bại nhưng nhận được thông báo không xác định hoặc thành công: " + alert
-            );
+                Assert.assertTrue(
+                        isFormError || isServerError,
+                        "Kỳ vọng thất bại nhưng nhận được thông báo không xác định hoặc thành công: " + alert
+                );
+
+            }
+        }
 
     }
-    }
-
-
    /* @Test(dataProvider = "orderData")
     public void testCreateOrder(OrderDataModel data) throws InterruptedException {
         newOrderPage.selectDropdownByLabel("Symbol", data.getSymbol());

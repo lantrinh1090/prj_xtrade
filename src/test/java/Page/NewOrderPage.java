@@ -24,6 +24,7 @@ public class NewOrderPage {
     private By PlaceOrderbtn = By.xpath("//button[@type='submit' and contains(., 'Place Order')]");
     private By Ordermenu = By.xpath("//li[.//a[text()='Order']]");
     private WebDriverWait wait;
+    private By priceSpan = By.cssSelector("span.font-bold.text-xl.text-red-600");
 
     public NewOrderPage(WebDriver driver) {
         this.driver = driver;
@@ -34,7 +35,7 @@ public class NewOrderPage {
         return "//div[contains(@class,'ant-select-item-option-content') and normalize-space(text())='" + optionText + "']";
     }
     public void openmenuOrder() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
 
         WebElement order = wait.until(ExpectedConditions.elementToBeClickable(Ordermenu));
 
@@ -113,16 +114,34 @@ public class NewOrderPage {
         ));
         submitBtn.click();
     }
+    public void clickResetFormButton() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
+        By resetButtonLocator = By.xpath("//button[.//span[text()='Reset Form']]");
+
+        // Đợi nút hiển thị và có thể click
+        wait.until(ExpectedConditions.presenceOfElementLocated(resetButtonLocator));
+        wait.until(ExpectedConditions.elementToBeClickable(resetButtonLocator));
+
+        // Click vào nút
+        driver.findElement(resetButtonLocator).click();
+    }
+
+    public float getCurrentPrice() {
+        String priceText = driver.findElement(priceSpan).getText().trim();
+        // loại bỏ ký tự không phải số nếu có (VD: dấu , hoặc $)
+        priceText = priceText.replaceAll("[^0-9.]", "");
+        return Float.parseFloat(priceText);
+    }
     public WebElement waitForInputReady(String labelText) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(200));
         By inputLocator;
         switch (labelText) {
             case "Volume":
-                inputLocator = By.xpath("//label[@for='volume']/ancestor::div[contains(@class,'ant-form-item')]//input");
+                inputLocator = By.xpath("//label[normalize-space(text())='Volume']/ancestor::div[contains(@class,'ant-form-item')]//input");
                 break;
             case "Price":
-                inputLocator = By.xpath("//label[@for='price']/ancestor::div[contains(@class,'ant-form-item')]//input");
+                inputLocator = By.xpath("//input[@placeholder='Enter price (e.g. 0.01)']");
                 break;
             default:
                 inputLocator = By.xpath("//label[contains(normalize-space(.),'" + labelText + "')]/following-sibling::div//input");
@@ -231,40 +250,57 @@ public class NewOrderPage {
 
     public void increasePriceByArrowUp(WebDriver driver) {
         try {
-            // Đợi ô input "Price" xuất hiện và có thể tương tác
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement priceInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("price")));
-            // Click vào ô nhập để focus
-            priceInput.click();
-            // Gửi phím mũi tên lên (Arrow Up) để tăng giá
-            priceInput.sendKeys(Keys.ARROW_UP);
-            // (Tùy chọn) In ra giá trị sau khi tăng
-            String newValue = priceInput.getAttribute("value");
+
+            // Nút "+"
+            By plusBtn = By.xpath("//button[.//span[@aria-label='plus']]");
+            WebElement plusButton = wait.until(ExpectedConditions.elementToBeClickable(plusBtn));
+            plusButton.click();
+
+            // Đợi input có value mới
+            By priceInputLocator = By.xpath("//input[@placeholder='Enter price (e.g. 0.01)']");
+            WebElement priceInput = wait.until(ExpectedConditions.visibilityOfElementLocated(priceInputLocator));
+
+            // Wait cho đến khi value khác rỗng
+            wait.until(driver1 -> !priceInput.getDomProperty("value").isEmpty());
+
+            String newValue = priceInput.getDomProperty("value");
             System.out.println("✅ Giá sau khi tăng: " + newValue);
         } catch (TimeoutException e) {
-            System.out.println("❌ Không tìm thấy ô Price hoặc không thể tương tác.");
+            System.out.println("❌ Không tìm thấy nút tăng Price hoặc input Price.");
         } catch (Exception e) {
             System.out.println("❌ Lỗi khác: " + e.getMessage());
         }
     }
+
+
     public void increasePriceByArrowDown(WebDriver driver) {
         try {
-            // Đợi ô input "Price" xuất hiện và có thể tương tác
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement priceInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("price")));
-            // Click vào ô nhập để focus
-            priceInput.click();
-            // Gửi phím mũi tên lên (Arrow Up) để tăng giá
-            priceInput.sendKeys(Keys.ARROW_DOWN);
-            // (Tùy chọn) In ra giá trị sau khi tăng
-            String newValue = priceInput.getAttribute("value");
+
+            // Nút "-"
+            By minusBtn = By.xpath("//button[.//span[@aria-label='minus']]");
+            WebElement minusButton = wait.until(ExpectedConditions.elementToBeClickable(minusBtn));
+            minusButton.click();
+
+            // Input Price
+            By priceInputLocator = By.xpath("//input[@placeholder='Enter price (e.g. 0.01)']");
+            WebElement priceInput = wait.until(ExpectedConditions.visibilityOfElementLocated(priceInputLocator));
+
+            // Chờ value thay đổi (hoặc ít nhất không rỗng)
+            wait.until(d -> !priceInput.getDomProperty("value").isEmpty());
+
+            String newValue = priceInput.getDomProperty("value");
             System.out.println("✅ Giá sau khi giảm: " + newValue);
+
         } catch (TimeoutException e) {
-            System.out.println("❌ Không tìm thấy ô Price hoặc không thể tương tác.");
+            System.out.println("❌ Không tìm thấy nút giảm Price hoặc input Price.");
         } catch (Exception e) {
             System.out.println("❌ Lỗi khác: " + e.getMessage());
         }
     }
+
+
     private boolean isWithinDateRange(String actualTime, String startDate, String endDate) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
