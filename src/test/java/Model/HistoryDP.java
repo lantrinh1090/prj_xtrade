@@ -24,14 +24,14 @@ public class HistoryDP {
 
         return new Object[][]{
                 // TC001: Market Execution thành công
-              /*    { "TC001: Market Execution thành công(Buy)",new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", "Buy", true) },
+                { "TC001: Market Execution thành công(Buy)",new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", "Buy", true) },
                   { "TC001: Market Execution thành công(Sell)",new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", "Sell", true) },
 
                 // TC002: Volume trống
                   { "TC002: Volume trống(Market Execution) ",new OrderDataModel("BTCUSD", "Market Execution", null, null, "Fill or Kill", "Buy", false) },
 
                 // TC003: Volume < 0.01
-                  { "TC003: Volume < 0.01(Market Execution)",new OrderDataModel("BTCUSD", "Market Execution", (float) 0.0001f, null, "Fill or Kill", "Buy", true)},
+                  { "TC003: Volume < 0.01(Market Execution)",new OrderDataModel("BTCUSD", "Market Execution", (float) 0.0001f, null, "Fill or Kill", "Buy", false)},
 
                 // TC004: Volume > max
               // { new OrderDataModel("EURUSD", "Market Execution", 0.005f, null, "Fill or Kill", "Buy", false) },
@@ -42,17 +42,17 @@ public class HistoryDP {
 
                 // TC007: Không chọn Order Type
                   { "TC007: Không chọn Order Type(Market Execution)",new OrderDataModel("BTCUSD", "Market Execution", 1.0f, null, "Fill or Kill", null, false) },
-*/
+
                 // TC008: Pending Order thành công
-                  {"TC0081: Pending Order thành công(Buy Limit)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", "Buy Limit", true) },
-                  {"TC0082: Pending Order thành công(Sell Limit ETHUSD)",new OrderDataModel("ETHUSD", "Pending Order", 1.0f, (float) 0, "", "Sell Limit", true) },
-                  {"TC0083: Pending Order thành công(Sell Limit XAUAUD)",new OrderDataModel("XAUAUD", "Pending Order", 1.0f, (float) 0, "", "Sell Limit", true) },
-                  {"TC0081: Pending Order thành công(Buy Stop)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", "Buy Stop", true) },
-                  {"TC0082: Pending Order thành công(Sell Stop ETHUSD)",new OrderDataModel("ETHUSD", "Pending Order", 1.0f, (float) 0, "", "Sell Stop", true) },
-                  {"TC0083: Pending Order thành công(Sell Stop Limit XAUAUD)",new OrderDataModel("XAUAUD", "Pending Order", 1.0f, (float) 0, "", "Sell Limit", true) },
-                  {"TC0081: Pending Order thành công(Buy Stop)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", "Buy Stop", true) },
+                  {"TC0081: Pending Order thành công(Buy Limit)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f,  0f, "", "Buy Limit", true) },
+                  {"TC0082: Pending Order thành công(Sell Limit ETHUSD)",new OrderDataModel("ETHUSD", "Pending Order", 1.0f, 0f, "", "Sell Limit", true) },
+                  {"TC0083: Pending Order thành công(Sell Limit XAUAUD)",new OrderDataModel("XAUAUD", "Pending Order", 1.0f,  0f, "", "Sell Limit", true) },
+                  {"TC0081: Pending Order thành công(Buy Stop)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f,  0f, "", "Buy Stop", true) },
+                  {"TC0082: Pending Order thành công(Sell Stop ETHUSD)",new OrderDataModel("ETHUSD", "Pending Order", 1.0f, 0f, "", "Sell Stop", true) },
+                  {"TC0083: Pending Order thành công(Sell Stop Limit XAUAUD)",new OrderDataModel("XAUAUD", "Pending Order", 1.0f, 0f, "", "Sell Limit", true) },
+                  {"TC0081: Pending Order thành công(Buy Stop)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f, 0f, "", "Buy Stop", true) },
                 // TC002: Volume trống
-                  { "TC002: Volume trống(Pending Order)",new OrderDataModel("BTCUSD", "Pending Order", null, (float) 0, "", "Buy Limit", false) },
+                  { "TC002: Volume trống(Pending Order)",new OrderDataModel("BTCUSD", "Pending Order", null, 0f, "", "Buy Limit", false) },
 
                 // TC003: Volume < 0.01
                   { "TC003: Volume < 0.01(Pending Order)", new OrderDataModel("BTCUSD", "Pending Order", 0.005f, 115254.82f, "", "Buy Limit", false) },
@@ -63,10 +63,11 @@ public class HistoryDP {
                   {"TC005: Fill Price Empty(Pending Order)", new OrderDataModel("BTCUSD", "Pending Order", 0.01f, null, "", "Buy Limit", false) },
 
                 // TC006: Không chọn Symbol
-                  { "TC006: Không chọn Symbol(Pending Order)",new OrderDataModel("", "Pending Order", 0.1f,(float) 0, "", "Buy Limit", false) },
+                  { "TC006: Không chọn Symbol(Pending Order)",new OrderDataModel("", "Pending Order", 0.1f,0f, "", "Buy Limit", false) },
 
                 // TC007: Không chọn Order Type
-                  {"TC007: Không chọn Order Type(Pending Order)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f, (float) 0, "", null, false) }
+                  {"TC007: Không chọn Order Type(Pending Order)", new OrderDataModel("BTCUSD", "Pending Order", 1.0f, 0f, "", null, false) }
+
 
         };
     }
